@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ΠΕ04 – Κατώφλια Πρόσληψης 2025–2026</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root { --bg:#f5f7fb; --card:#fff; --blue:#1a237e; --accent:#3949ab;
+           --muted:#666; --border:#e0e4f0; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+          background:var(--bg); color:#222; min-height:100vh; }
+  header { background:var(--blue); color:#fff; padding:1.2rem 2rem;
+            display:flex; align-items:center; gap:1rem; }
+  header h1 { font-size:1.15rem; font-weight:600; }
+  header a { color:rgba(255,255,255,.7); font-size:.85rem;
+              text-decoration:none; margin-left:auto; white-space:nowrap; }
+  header a:hover { color:#fff; }
+  .tabs { display:flex; gap:.5rem; padding:1.5rem 2rem .5rem; flex-wrap:wrap; }
+  .tab { padding:.45rem 1.1rem; border-radius:20px; border:2px solid var(--border);
+          background:var(--card); cursor:pointer; font-size:.85rem;
+          font-weight:500; transition:all .15s; }
+  .tab.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .tab:hover:not(.active) { border-color:var(--accent); color:var(--accent); }
+  .content { padding:0 2rem 2rem; }
+  .panel { display:none; }
+  .panel.active { display:block; }
+  .card { background:var(--card); border-radius:12px;
+           box-shadow:0 2px 8px rgba(0,0,0,.07); padding:1.5rem;
+           margin-bottom:1.5rem; }
+  .card-title { font-size:1rem; font-weight:600; color:var(--blue); margin-bottom:1.2rem; }
+  .chart-wrap { position:relative; height:400px; }
+  .legend-row { display:flex; gap:1.5rem; flex-wrap:wrap;
+                 margin-top:1rem; font-size:.8rem; color:var(--muted); }
+  .legend-item { display:flex; align-items:center; gap:.4rem; }
+  .leg-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+  .leg-line { width:24px; height:3px; flex-shrink:0; border-radius:2px; }
+  .leg-area { width:24px; height:12px; flex-shrink:0; border-radius:3px; }
+  .stats-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(130px,1fr));
+                 gap:.75rem; }
+  .stat-card { background:var(--bg); border-radius:8px; padding:.8rem; text-align:center; }
+  .stat-phase { font-size:.72rem; font-weight:700; color:var(--accent); margin-bottom:.3rem; }
+  .stat-med { font-size:1.3rem; font-weight:700; color:var(--blue); }
+  .stat-range { font-size:.72rem; color:var(--muted); margin-top:.1rem; }
+  .stat-n { font-size:.7rem; color:var(--muted); margin-top:.1rem; }
+  footer { text-align:center; padding:1.5rem; font-size:.78rem;
+            color:var(--muted); border-top:1px solid var(--border); }
+  footer a { color:var(--accent); }
+  @media(max-width:600px) {
+    header,.tabs,.content { padding-left:1rem; padding-right:1rem; }
+    .chart-wrap { height:300px; }
+    header h1 { font-size:1rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div style="font-size:.78rem;opacity:.65;margin-bottom:.2rem">Δευτεροβάθμια – Γενική Εκπαίδευση</div>
+    <h1>📊 ΠΕ04 – Κατώφλια Πρόσληψης ανά Φάση 2025–2026</h1>
+  </div>
+</header>
+
+<div class="tabs">
+  <button class="tab active" onclick="showSpec('ΠΕ04.01',this)">ΠΕ04.01 – Φυσικοί</button>
+  <button class="tab" onclick="showSpec('ΠΕ04.02',this)">ΠΕ04.02 – Χημικοί</button>
+  <button class="tab" onclick="showSpec('ΠΕ04.04',this)">ΠΕ04.04 – Βιολόγοι</button>
+  <button class="tab" onclick="showSpec('ΠΕ04.05',this)">ΠΕ04.05 – Γεωλόγοι</button>
+</div>
+
+<div class="content">
+  <div id="panel-ΠΕ04.01" class="panel active"></div>
+  <div id="panel-ΠΕ04.02" class="panel"></div>
+  <div id="panel-ΠΕ04.04" class="panel"></div>
+  <div id="panel-ΠΕ04.05" class="panel"></div>
+</div>
+
+<footer>
+  Δεδομένα από τις επίσημες ανακοινώσεις του
+  <a href="https://www.minedu.gov.gr/" target="_blank">Υπουργείου Παιδείας</a>
+  για το διδακτικό έτος 2025–2026 |
+  <a href="https://www.statistika0401.gr" target="_blank">www.statistika0401.gr</a><br>
+  Σχεδιασμός/Υλοποίηση: Ζτούπας Βαγγέλης – Φυσικός
+</footer>
+
+<script>
+const SPECS = {"ΠΕ04.01": {"name": "Φυσικοί", "phases": ["Α΄", "Β΄", "Σ.Οκτ", "Γ΄", "Γ΄2", "Σ.Ιαν", "Σ.22/1", "Σ.Φεβ", "Σ.24/2"], "stats": {"Α΄": {"min": 53.0, "max": 115.75, "median": 65.74, "mean": 68.18, "q1": 60.07, "q3": 73.12, "count": 48, "scores": [53.0, 54.25, 54.33, 54.98, 55.35, 56.3, 57.08, 58.78, 58.95, 59.33, 59.78, 59.95, 60.43, 62.25, 62.35, 62.83, 63.0, 63.03, 63.38, 64.0, 64.9, 65.05, 65.43, 65.65, 65.83, 66.78, 66.85, 67.55, 69.13, 69.73, 69.95, 69.98, 70.15, 70.85, 71.48, 72.15, 73.45, 74.85, 74.88, 75.23, 76.25, 76.75, 80.53, 82.4, 84.58, 90.33, 92.83, 115.75]}, "Β΄": {"min": 50.5, "max": 79.83, "median": 56.25, "mean": 57.51, "q1": 52.5, "q3": 60.09, "count": 48, "scores": [50.5, 50.95, 51.05, 51.23, 51.5, 51.73, 51.85, 51.9, 51.95, 52.0, 52.3, 52.48, 52.58, 52.9, 53.2, 53.33, 53.78, 54.15, 54.18, 54.68, 54.85, 55.3, 56.05, 56.08, 56.43, 56.45, 56.63, 57.05, 57.83, 58.2, 58.38, 58.38, 58.8, 59.3, 59.58, 60.05, 60.1, 60.45, 61.0, 62.03, 63.3, 63.38, 64.6, 68.6, 68.95, 69.3, 71.28, 79.83]}, "Σ.Οκτ": {"min": 50.6, "max": 57.35, "median": 52.27, "mean": 53.49, "q1": 50.97, "q3": 56.7, "count": 8, "scores": [50.6, 50.88, 51.25, 51.28, 53.25, 56.53, 56.75, 57.35]}, "Γ΄": {"min": 47.33, "max": 61.4, "median": 50.83, "mean": 51.42, "q1": 49.47, "q3": 52.48, "count": 40, "scores": [47.33, 47.63, 48.08, 48.25, 48.73, 49.08, 49.2, 49.25, 49.4, 49.43, 49.58, 49.65, 49.7, 50.0, 50.33, 50.35, 50.45, 50.68, 50.78, 50.83, 50.83, 51.05, 51.23, 51.23, 51.25, 51.85, 51.88, 52.1, 52.3, 52.43, 52.5, 53.05, 53.45, 53.7, 53.88, 54.33, 54.9, 56.7, 57.95, 61.4]}, "Γ΄2": {"min": 42.63, "max": 53.73, "median": 47.95, "mean": 48.63, "q1": 47.18, "q3": 50.46, "count": 14, "scores": [42.63, 46.9, 47.03, 47.23, 47.35, 47.48, 47.5, 48.4, 49.7, 49.9, 50.45, 50.48, 52.0, 53.73]}, "Σ.Ιαν": {"min": 46.6, "max": 54.95, "median": 49.39, "mean": 49.34, "q1": 47.35, "q3": 50.38, "count": 16, "scores": [46.6, 46.63, 46.73, 47.28, 47.55, 48.23, 48.93, 49.18, 49.6, 49.75, 50.0, 50.33, 50.4, 51.6, 51.68, 54.95]}, "Σ.22/1": {"min": 45.78, "max": 51.43, "median": 47.85, "mean": 48.18, "q1": 46.16, "q3": 49.66, "count": 9, "scores": [45.78, 45.88, 46.43, 47.45, 47.85, 49.45, 49.58, 49.75, 51.43]}, "Σ.Φεβ": {"min": 44.88, "max": 69.15, "median": 49.15, "mean": 51.22, "q1": 45.55, "q3": 53.81, "count": 9, "scores": [44.88, 45.3, 45.8, 46.6, 49.15, 52.5, 53.28, 54.35, 69.15]}, "Σ.24/2": {"min": 45.28, "max": 45.28, "median": 45.28, "mean": 45.28, "q1": 45.28, "q3": 45.28, "count": 1, "scores": [45.28]}}}, "ΠΕ04.02": {"name": "Χημικοί", "phases": ["Α΄", "Β΄", "Σ.Οκτ", "Γ΄", "Γ΄2", "Σ.Ιαν", "Σ.22/1", "Σ.Φεβ", "Σ.24/2"], "stats": {"Α΄": {"min": 48.95, "max": 95.13, "median": 57.2, "mean": 60.86, "q1": 54.3, "q3": 63.0, "count": 35, "scores": [48.95, 49.08, 49.2, 49.25, 49.95, 52.73, 53.43, 53.85, 54.3, 54.4, 54.7, 54.85, 55.03, 55.5, 55.63, 55.63, 56.95, 57.2, 57.35, 57.43, 57.45, 58.25, 58.33, 58.88, 59.73, 62.53, 63.0, 63.13, 67.05, 74.1, 76.33, 80.78, 89.85, 90.2, 95.13]}, "Β΄": {"min": 43.38, "max": 86.5, "median": 52.78, "mean": 53.38, "q1": 48.51, "q3": 55.84, "count": 36, "scores": [43.38, 43.63, 45.65, 46.43, 46.55, 46.68, 47.8, 48.0, 48.2, 49.45, 49.7, 50.35, 50.5, 50.73, 50.75, 50.78, 51.63, 52.63, 52.93, 53.48, 53.95, 54.18, 54.68, 54.75, 55.05, 55.35, 55.68, 55.9, 56.88, 57.25, 57.35, 59.45, 59.53, 61.7, 64.08, 86.5]}, "Σ.Οκτ": {"min": 39.23, "max": 56.0, "median": 48.63, "mean": 48.74, "q1": 45.68, "q3": 50.25, "count": 11, "scores": [39.23, 45.55, 45.68, 48.03, 48.58, 48.63, 50.1, 50.2, 50.25, 53.93, 56.0]}, "Γ΄": {"min": 30.58, "max": 58.73, "median": 48.05, "mean": 48.35, "q1": 45.32, "q3": 51.29, "count": 30, "scores": [30.58, 42.85, 43.13, 43.48, 44.15, 44.75, 45.3, 45.33, 45.38, 45.58, 46.55, 47.13, 47.43, 47.5, 47.7, 48.4, 49.38, 49.55, 49.6, 50.05, 50.43, 50.83, 51.25, 51.4, 51.55, 53.73, 53.9, 56.73, 58.05, 58.73]}, "Γ΄2": {"min": 30.43, "max": 48.63, "median": 42.03, "mean": 40.61, "q1": 33.42, "q3": 46.61, "count": 16, "scores": [30.43, 31.88, 32.0, 32.4, 36.5, 38.8, 41.45, 41.83, 42.23, 42.65, 43.68, 44.68, 47.25, 47.3, 48.0, 48.63]}, "Σ.Ιαν": {"min": 29.85, "max": 74.35, "median": 40.43, "mean": 42.8, "q1": 36.06, "q3": 46.65, "count": 12, "scores": [29.85, 30.5, 35.7, 37.13, 39.65, 40.03, 40.83, 45.48, 46.25, 46.78, 47.03, 74.35]}, "Σ.22/1": {"min": 29.43, "max": 54.7, "median": 33.08, "mean": 37.68, "q1": 29.67, "q3": 48.2, "count": 6, "scores": [29.43, 29.75, 30.95, 35.2, 46.03, 54.7]}, "Σ.Φεβ": {"min": 28.68, "max": 52.78, "median": 44.25, "mean": 41.33, "q1": 28.92, "q3": 49.95, "count": 6, "scores": [28.68, 29.0, 41.25, 47.25, 49.0, 52.78]}, "Σ.24/2": {"min": 39.73, "max": 39.73, "median": 39.73, "mean": 39.73, "q1": 39.73, "q3": 39.73, "count": 1, "scores": [39.73]}}}, "ΠΕ04.04": {"name": "Βιολόγοι", "phases": ["Α΄", "Β΄", "Σ.Οκτ", "Γ΄", "Γ΄2", "Σ.Ιαν", "Σ.22/1", "Σ.Φεβ", "Σ.24/2"], "stats": {"Α΄": {"min": 51.33, "max": 91.58, "median": 61.78, "mean": 64.03, "q1": 57.04, "q3": 68.28, "count": 45, "scores": [51.33, 51.63, 51.7, 51.8, 52.28, 52.45, 54.38, 54.65, 54.93, 56.68, 56.75, 57.33, 57.58, 58.5, 58.55, 59.55, 60.03, 60.3, 60.68, 60.73, 61.03, 61.68, 61.78, 62.3, 62.4, 62.93, 63.08, 63.83, 63.95, 64.63, 65.58, 66.05, 66.63, 67.38, 69.18, 69.5, 70.13, 71.05, 75.25, 76.08, 77.18, 86.03, 89.95, 90.15, 91.58]}, "Β΄": {"min": 43.45, "max": 78.63, "median": 55.29, "mean": 55.66, "q1": 50.98, "q3": 58.04, "count": 36, "scores": [43.45, 46.5, 47.73, 48.33, 48.38, 49.73, 49.93, 50.5, 50.9, 51.23, 51.25, 51.28, 51.73, 52.23, 53.53, 53.55, 53.75, 55.08, 55.5, 56.4, 56.48, 56.6, 56.73, 56.75, 57.33, 57.68, 57.78, 58.13, 58.5, 58.85, 61.05, 62.98, 63.13, 65.55, 76.6, 78.63]}, "Σ.Οκτ": {"min": 46.5, "max": 52.83, "median": 49.66, "mean": 49.66, "q1": 46.5, "q3": 52.83, "count": 2, "scores": [46.5, 52.83]}, "Γ΄": {"min": 29.38, "max": 64.95, "median": 49.08, "mean": 48.77, "q1": 45.7, "q3": 51.49, "count": 21, "scores": [29.38, 41.88, 42.9, 44.25, 45.3, 46.1, 46.2, 46.43, 46.65, 47.98, 49.08, 49.75, 50.1, 50.5, 50.8, 51.3, 51.68, 55.35, 56.23, 57.38, 64.95]}, "Γ΄2": {"min": 33.9, "max": 49.45, "median": 44.64, "mean": 43.16, "q1": 36.58, "q3": 48.25, "count": 4, "scores": [33.9, 44.63, 44.65, 49.45]}, "Σ.Ιαν": {"min": 32.98, "max": 59.5, "median": 43.63, "mean": 45.57, "q1": 41.88, "q3": 50.88, "count": 11, "scores": [32.98, 40.73, 41.88, 42.28, 42.78, 43.63, 45.95, 47.68, 50.88, 53.0, 59.5]}, "Σ.22/1": {"min": 32.3, "max": 45.33, "median": 41.81, "mean": 40.31, "q1": 34.01, "q3": 45.12, "count": 4, "scores": [32.3, 39.15, 44.48, 45.33]}, "Σ.Φεβ": {"min": 31.13, "max": 53.13, "median": 38.0, "mean": 40.75, "q1": 31.13, "q3": 53.13, "count": 3, "scores": [31.13, 38.0, 53.13]}, "Σ.24/2": {"min": 46.45, "max": 46.45, "median": 46.45, "mean": 46.45, "q1": 46.45, "q3": 46.45, "count": 1, "scores": [46.45]}}}, "ΠΕ04.05": {"name": "Γεωλόγοι", "phases": ["Α΄", "Β΄", "Σ.Οκτ", "Γ΄", "Γ΄2", "Σ.22/1"], "stats": {"Α΄": {"min": 53.13, "max": 67.5, "median": 56.6, "mean": 58.46, "q1": 53.79, "q3": 64.99, "count": 4, "scores": [53.13, 55.75, 57.45, 67.5]}, "Β΄": {"min": 54.25, "max": 62.85, "median": 58.55, "mean": 58.55, "q1": 54.25, "q3": 62.85, "count": 2, "scores": [54.25, 62.85]}, "Σ.Οκτ": {"min": 53.78, "max": 53.78, "median": 53.78, "mean": 53.78, "q1": 53.78, "q3": 53.78, "count": 1, "scores": [53.78]}, "Γ΄": {"min": 52.03, "max": 55.5, "median": 55.23, "mean": 54.25, "q1": 52.03, "q3": 55.5, "count": 3, "scores": [52.03, 55.23, 55.5]}, "Γ΄2": {"min": 53.28, "max": 53.28, "median": 53.28, "mean": 53.28, "q1": 53.28, "q3": 53.28, "count": 1, "scores": [53.28]}, "Σ.22/1": {"min": 51.45, "max": 51.45, "median": 51.45, "mean": 51.45, "q1": 51.45, "q3": 51.45, "count": 1, "scores": [51.45]}}}};
+const charts = {};
+
+function renderChart(specKey) {
+  const panel = document.getElementById('panel-' + specKey);
+  if (panel.dataset.rendered) return;
+  panel.dataset.rendered = '1';
+
+  const d = SPECS[specKey];
+  const phases = d.phases;
+  const stats  = d.stats;
+
+  const q1Data  = phases.map(ph => stats[ph]?.q1     ?? null);
+  const q3Data  = phases.map(ph => stats[ph]?.q3     ?? null);
+  const medData = phases.map(ph => stats[ph]?.median ?? null);
+  const minData = phases.map(ph => stats[ph]?.min    ?? null);
+  const maxData = phases.map(ph => stats[ph]?.max    ?? null);
+
+  // Scatter: each score as {x: label, y: value}
+  const scatterData = [];
+  phases.forEach(ph => {
+    if (stats[ph]) stats[ph].scores.forEach(s => scatterData.push({x: ph, y: s}));
+  });
+
+  const cards = phases.map(ph => {
+    if (!stats[ph]) return '';
+    const s = stats[ph];
+    return `<div class="stat-card">
+      <div class="stat-phase">${ph}</div>
+      <div class="stat-med">${s.median.toFixed(2)}</div>
+      <div class="stat-range">${s.min.toFixed(1)} – ${s.max.toFixed(1)}</div>
+      <div class="stat-n">n=${s.count} περιοχές</div>
+    </div>`;
+  }).join('');
+
+  // Global stats across all phases
+  const allScores = phases.flatMap(ph => stats[ph]?.scores ?? []).sort((a,b) => a-b);
+  const globalMin = allScores[0];
+  const globalMax = allScores[allScores.length - 1];
+  const mid = Math.floor(allScores.length / 2);
+  const globalMed = allScores.length % 2 === 0
+    ? (allScores[mid-1] + allScores[mid]) / 2
+    : allScores[mid];
+
+  const badge = (label, val) =>
+    `<span style="background:#e53935;color:#fff;border-radius:20px;
+                  padding:.28rem .85rem;font-size:.82rem;font-weight:600;
+                  display:inline-flex;align-items:center;gap:.35rem;white-space:nowrap">
+       ${label}: <strong>${val.toFixed(2)}</strong>
+     </span>`;
+
+  panel.innerHTML = `
+    <div class="card">
+      <div class="card-title">📦 Κατώφλια ανά Φάση – ${d.name} (${specKey})</div>
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem">
+        ${badge('Ελάχ. κατώφλι', globalMin)}
+        ${badge('Διάμεσος', globalMed)}
+        ${badge('Μέγ. κατώφλι', globalMax)}
+      </div>
+      <div class="chart-wrap"><canvas id="chart-${specKey}"></canvas></div>
+      <div class="legend-row">
+        <div class="legend-item">
+          <div class="leg-dot" style="background:rgba(57,73,171,0.4)"></div>Κατώφλι περιοχής
+        </div>
+        <div class="legend-item">
+          <div class="leg-line" style="background:#e53935"></div>Διάμεσος
+        </div>
+        <div class="legend-item">
+          <div class="leg-area" style="background:rgba(57,73,171,0.15);border:1.5px solid rgba(57,73,171,0.5)"></div>Εύρος Q1–Q3
+        </div>
+        <div class="legend-item">
+          <div class="leg-line" style="background:#90a4ae;height:1.5px"></div>Min / Max
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">📋 Στατιστικά ανά Φάση</div>
+      <div class="stats-grid">${cards}</div>
+    </div>`;
+
+  const ctx = document.getElementById('chart-' + specKey).getContext('2d');
+
+  charts[specKey] = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: phases,
+      datasets: [
+        // 1. Scatter dots — individual region scores
+        {
+          type: 'scatter',
+          label: 'Περιοχή',
+          data: scatterData,
+          backgroundColor: 'rgba(57,73,171,0.35)',
+          pointRadius: 4,
+          pointHoverRadius: 6,
+          showLine: false,
+          order: 10,
+        },
+        // 2. Min — dashed bottom whisker
+        {
+          label: 'Min',
+          data: minData,
+          borderColor: 'rgba(100,120,160,0.6)',
+          borderWidth: 1.5,
+          borderDash: [5,4],
+          pointRadius: 3,
+          pointBackgroundColor: 'rgba(100,120,160,0.6)',
+          backgroundColor: 'transparent',
+          tension: 0,
+          fill: false,
+          order: 6,
+        },
+        // 3. Q1 — bottom of box, fills UP to Q3
+        {
+          label: 'Q1',
+          data: q1Data,
+          borderColor: 'rgba(57,73,171,0.5)',
+          borderWidth: 1,
+          pointRadius: 0,
+          backgroundColor: 'rgba(57,73,171,0.12)',
+          tension: 0,
+          fill: '+1',   // fill toward Q3 dataset (next)
+          order: 5,
+        },
+        // 4. Q3 — top of box
+        {
+          label: 'Q3',
+          data: q3Data,
+          borderColor: 'rgba(57,73,171,0.5)',
+          borderWidth: 1,
+          pointRadius: 0,
+          backgroundColor: 'transparent',
+          tension: 0,
+          fill: false,
+          order: 4,
+        },
+        // 5. Max — dashed top whisker
+        {
+          label: 'Max',
+          data: maxData,
+          borderColor: 'rgba(100,120,160,0.6)',
+          borderWidth: 1.5,
+          borderDash: [5,4],
+          pointRadius: 3,
+          pointBackgroundColor: 'rgba(100,120,160,0.6)',
+          backgroundColor: 'transparent',
+          tension: 0,
+          fill: false,
+          order: 3,
+        },
+        // 6. Median — bold red line, drawn last (on top)
+        {
+          label: 'Διάμεσος',
+          data: medData,
+          borderColor: '#e53935',
+          borderWidth: 3,
+          pointRadius: 6,
+          pointBackgroundColor: '#e53935',
+          pointBorderColor: '#fff',
+          pointBorderWidth: 2,
+          pointHoverRadius: 8,
+          backgroundColor: 'transparent',
+          tension: 0.1,
+          fill: false,
+          order: 1,
+        },
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          filter: item => item.dataset.label !== 'Q1' && item.dataset.label !== 'Q3',
+          callbacks: {
+            title: items => {
+              const ph = items[0].label;
+              const s = stats[ph];
+              return ph + (s ? ` (${s.count} περιοχές)` : '');
+            },
+            label: ctx => {
+              const ph = ctx.label;
+              const s = stats[ph];
+              if (!s) return '';
+              switch(ctx.dataset.label) {
+                case 'Διάμεσος': return `Διάμεσος: ${s.median.toFixed(2)} μόρια`;
+                case 'Min':      return `Min: ${s.min.toFixed(2)} μόρια`;
+                case 'Max':      return `Max: ${s.max.toFixed(2)} μόρια`;
+                case 'Περιοχή': return `${ctx.raw?.y?.toFixed(2)} μόρια`;
+                default:        return '';
+              }
+            }
+          }
+        }
+      },
+      scales: {
+        x: { grid: { color:'#f0f2f8' }, ticks: { font:{ size:11 } } },
+        y: {
+          grid: { color:'#f0f2f8' },
+          title: { display:true, text:'Μόρια κατωφλίου', font:{ size:11 } },
+          ticks: { font:{ size:11 } }
+        }
+      }
+    }
+  });
+}
+
+function showSpec(key, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + key).classList.add('active');
+  renderChart(key);
+}
+
+// Pre-select spec from URL param e.g. ?spec=ΠΕ04.02
+(function() {
+  const param = new URLSearchParams(window.location.search).get('spec');
+  const valid = ['ΠΕ04.01','ΠΕ04.02','ΠΕ04.04','ΠΕ04.05'];
+  const initial = valid.includes(param) ? param : 'ΠΕ04.01';
+  if (initial !== 'ΠΕ04.01') {
+    document.querySelectorAll('.tab').forEach(t => {
+      t.classList.toggle('active', t.textContent.trim().startsWith(initial));
+    });
+    document.querySelectorAll('.panel').forEach(p => {
+      p.classList.toggle('active', p.id === 'panel-' + initial);
+    });
+  }
+  renderChart(initial);
+})();
+</script>
+</body>
+</html>
