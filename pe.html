@@ -1125,15 +1125,21 @@ function renderResult(score, specCode, specObj, regionObj, relevant) {
     thead = `<tr><th>Φάση</th>${typeCol}<th>Ημερομηνία</th><th>Μόρια τελευταίου</th><th>Προσληφθέντες</th><th>Αποτέλεσμα</th></tr>`;
     rows = relevant.map(c => {
       const ok = qualifies(score, c);
-      const autoKyrios = selectedCat === "ΕΑΕ" && userPinax === "Κύριος" && c.pinax === "Επικουρικός";
+      const autoKyrios  = isEAE && userPinax === "Κύριος"      && c.pinax === "Επικουρικός";
+      const cantCompete = isEAE && userPinax === "Επικουρικός" && c.pinax === "Κύριος";
       const delta = score - c.min;
       const dSign = delta >= 0 ? "+" : "";
       const typeCell = `<td><span class="type-chip">${c.type||""}</span></td>`;
+      const scoreDisplay = autoKyrios
+        ? '<span class="pinax-chip pinax-kyrios">✓ Αυτόματα</span>'
+        : cantCompete
+          ? '<span style="color:var(--muted);font-size:.8rem">—</span>'
+          : `<span class="delta ${delta>=0?'pos':'neg'}">${dSign}${fmt(Math.abs(delta))}</span>`;
       return `<tr class="${ok?'ok':'bad'}">
         <td><span class="phase-chip ${phaseClass(c.phase)}">${c.phase}</span></td>
         ${typeCell}
         <td>${PHASES.find(p=>p.name===c.phase)?.date || ""}</td>
-        <td>${fmt(c.min)}${isEAE && c.pinax ? ` <span class="pinax-chip ${c.pinax==='Επικουρικός'?'pinax-epik':'pinax-kyrios'}">${c.pinax}</span>` : ""} ${autoKyrios ? '<span class="pinax-chip pinax-kyrios">✓ Αυτόματα</span>' : `<span class="delta ${delta>=0?'pos':'neg'}">${dSign}${fmt(Math.abs(delta))}</span>`}</td>
+        <td>${fmt(c.min)}${isEAE && c.pinax ? ` <span class="pinax-chip ${c.pinax==='Επικουρικός'?'pinax-epik':'pinax-kyrios'}">${c.pinax}</span>` : ""} ${scoreDisplay}</td>
         <td>${c.hired ? c.hired+" εκπ/κοί" : "—"}</td>
         <td><span class="badge ${ok?'ok':'bad'}">${ok?"✓ Προσλαμβανόσασταν":"✗ Όχι"}</span></td>
       </tr>`;
