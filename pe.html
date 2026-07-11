@@ -981,21 +981,21 @@ function renderAllRegions(score, specObj, allCutoffs) {
   let tables = "";
   for (const [phase, items] of byPhase) {
     const rows = items.map(c => {
-      const typeCell = isEAEmode ? `<td><span class="type-chip">${c.type||""}</span></td>` : "";
+      const typeCell = `<td><span class="type-chip">${c.type||""}</span></td>`;
       return `<tr class="ok">
         <td>${c.region}</td>
         ${typeCell}
-        <td>${fmt(c.min)}${isEAEmode && c.pinax ? ` <span class="pinax-chip ${c.pinax==='Επικουρικός'?'pinax-epik':'pinax-kyrios'}">${c.pinax}</span>` : ""}</td>
+        <td>${fmt(c.min)}${c.pinax ? ` <span class="pinax-chip ${c.pinax==='Επικουρικός'?'pinax-epik':'pinax-kyrios'}">${c.pinax}</span>` : ""}</td>
         <td><span class="delta pos">+${fmt(score - c.min)}</span></td>
         <td>${c.hired ? c.hired+" εκπ/κοί" : "—"}</td>
       </tr>`;
     }).join("");
-    const typeHdr = isEAEmode ? "<th>Τύπος Πρόσληψης</th>" : "";
+    const typeHdr = "<th>Τύπος Θέσης</th>";
     tables += `
       <div class="card" style="margin-top:.75rem">
         <div class="card-head light">
           <span class="phase-chip ${phaseClass(phase)}" style="margin-right:.5rem">${phase}</span>
-          ${PHASES.find(p=>p.name===phase)?.date || ""} — ${items.length} ${isEAEmode?"εγγραφές":"περιοχές"}
+          ${PHASES.find(p=>p.name===phase)?.date || ""} — ${items.length} εγγραφές
         </div>
         <div class="table-wrap">
           <table>
@@ -1063,7 +1063,7 @@ function renderResult(score, specCode, specObj, regionObj, relevant) {
     if (winPhase) {
       const ph = PHASES.find(p=>p.name===winPhase.phase) || { date:"" };
       const typeNote = (isEAE && winPhase.type)
-        ? `<br><span class="type-chip" style="margin-top:6px">${winPhase.type}</span>` : "";
+        const winTypeChip = winPhase.type ? `<br><span class="type-chip" style="margin-top:6px">${winPhase.type}</span>` : "";
       resultBox = `
         <div class="result-box success">
           <div class="result-icon">✅</div>
@@ -1115,7 +1115,7 @@ function renderResult(score, specCode, specObj, regionObj, relevant) {
   }
 
   // Table — with or without score columns
-  const typeCol = isEAE ? "<th>Τύπος Πρόσληψης</th>" : "";
+  const typeCol = "<th>Τύπος Θέσης</th>";
   let rows, thead;
   if (hasScore) {
     thead = `<tr><th>Φάση</th>${typeCol}<th>Ημερομηνία</th><th>Μόρια τελευταίου</th><th>Προσληφθέντες</th><th>Αποτέλεσμα</th></tr>`;
@@ -1124,7 +1124,7 @@ function renderResult(score, specCode, specObj, regionObj, relevant) {
       const autoKyrios = selectedCat === "ΕΑΕ" && userPinax === "Κύριος" && c.pinax === "Επικουρικός";
       const delta = score - c.min;
       const dSign = delta >= 0 ? "+" : "";
-      const typeCell = isEAE ? `<td><span class="type-chip">${c.type||""}</span></td>` : "";
+      const typeCell = `<td><span class="type-chip">${c.type||""}</span></td>`;
       return `<tr class="${ok?'ok':'bad'}">
         <td><span class="phase-chip ${phaseClass(c.phase)}">${c.phase}</span></td>
         ${typeCell}
@@ -1137,7 +1137,7 @@ function renderResult(score, specCode, specObj, regionObj, relevant) {
   } else {
     thead = `<tr><th>Φάση</th>${typeCol}<th>Ημερομηνία</th><th>Μόρια τελευταίου</th><th>Προσληφθέντες</th></tr>`;
     rows = relevant.map(c => {
-      const typeCell = isEAE ? `<td><span class="type-chip">${c.type||""}</span></td>` : "";
+      const typeCell = `<td><span class="type-chip">${c.type||""}</span></td>`;
       return `<tr>
         <td><span class="phase-chip ${phaseClass(c.phase)}">${c.phase}</span></td>
         ${typeCell}
