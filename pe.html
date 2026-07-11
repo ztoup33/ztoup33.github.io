@@ -960,9 +960,9 @@ function renderAllRegions(score, specObj, allCutoffs) {
 
   // Total available slots for this spec/category (unique region or region+type combos)
   const specCutoffs = cutoffs.filter(c => c.spec === specObj.code);
-  const totalSlots = new Set(specCutoffs.map(c => isEAEmode ? c.region+"|||"+(c.type||"") : c.region)).size;
-  const slotLabel = isEAEmode ? "θέσεις (περιοχή + τύπος)" : "περιοχές";
-  const slotLabelShort = isEAEmode ? "θέσεις" : "περιοχές";
+  const totalSlots = new Set(specCutoffs.map(c => c.region+"|||"+(c.type||""))).size;
+  const slotLabel = "θέσεις (περιοχή + τύπος)";
+  const slotLabelShort = "θέσεις";
 
   const summaryBox = `
     <div class="result-box success">
@@ -982,11 +982,16 @@ function renderAllRegions(score, specObj, allCutoffs) {
   for (const [phase, items] of byPhase) {
     const rows = items.map(c => {
       const typeCell = `<td><span class="type-chip">${c.type||""}</span></td>`;
+      const autoKyrios = isEAEmode && userPinax === "Κύριος" && c.pinax === "Επικουρικός";
+      const delta = score - c.min;
+      const deltaCell = autoKyrios
+        ? `<td><span class="pinax-chip pinax-kyrios">✓ Κύριος Πίνακας</span></td>`
+        : `<td><span class="delta ${delta>=0?'pos':'neg'}">${delta>=0?'+':''}${fmt(delta)}</span></td>`;
       return `<tr class="ok">
         <td>${c.region}</td>
         ${typeCell}
         <td>${fmt(c.min)}${c.pinax ? ` <span class="pinax-chip ${c.pinax==='Επικουρικός'?'pinax-epik':'pinax-kyrios'}">${c.pinax}</span>` : ""}</td>
-        <td><span class="delta pos">+${fmt(score - c.min)}</span></td>
+        ${deltaCell}
         <td>${c.hired ? c.hired+" εκπ/κοί" : "—"}</td>
       </tr>`;
     }).join("");
