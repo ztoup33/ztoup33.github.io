@@ -1062,8 +1062,7 @@ function renderResult(score, specCode, specObj, regionObj, relevant) {
     }
     if (winPhase) {
       const ph = PHASES.find(p=>p.name===winPhase.phase) || { date:"" };
-      const typeNote = (isEAE && winPhase.type)
-        const winTypeChip = winPhase.type ? `<br><span class="type-chip" style="margin-top:6px">${winPhase.type}</span>` : "";
+      const typeNote = winPhase.type ? `<br><span class="type-chip" style="margin-top:6px">${winPhase.type}</span>` : "";
       resultBox = `
         <div class="result-box success">
           <div class="result-icon">✅</div>
