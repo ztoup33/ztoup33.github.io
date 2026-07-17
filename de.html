@@ -6173,6 +6173,7 @@ function renderResult(score, specCode, specObj, regionObj, relevant) {
         </table>
       </div>
       ${(()=>{
+        if (selectedCat !== "ΓΕ") return '';
         let prev = null;
         for (const c of relevant) {
           if (prev !== null && c.min > prev) {
