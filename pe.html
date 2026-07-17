@@ -900,11 +900,13 @@ function renderAllRegions(score, specObj, allCutoffs) {
   const area = document.getElementById("result-area");
   area.style.display = "block";
 
-  // For each region (or region+type for EAE), find the FIRST qualifying phase
+  // For each region+type combo, find the FIRST qualifying phase
+  // PE GE always has multiple types per region (ΓΕΝΙΚΗΣ ΠΑΙΔΕΙΑΣ, ΝΗΠΙΑΓΩΓΕΙΟ κ.λπ.)
+  // so we always key by region+type, not just region
   const isEAEmode = selectedCat === "ΕΑΕ";
   const regionBestPhase = new Map();
   for (const c of allCutoffs) {
-    const key = isEAEmode ? c.region + "|||" + (c.type||"") : c.region;
+    const key = c.region + "|||" + (c.type||"");
     const existing = regionBestPhase.get(key);
     if (!existing && qualifies(score, c)) {
       regionBestPhase.set(key, c); // first qualifying phase (sorted by phase order)
@@ -1183,6 +1185,7 @@ function resetResult() {
   document.getElementById("inp-score").value = "";
   window.scrollTo({top:0, behavior:"smooth"});
 }
+
 
 // ═══════════════════════════════════════════════════════
 //  XLSX IMPORT (client-side via SheetJS CDN)
